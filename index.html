@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Baby's First Steps - Build 67</title>
+  <title>Baby's First Steps - Build 68</title>
   <style>
 * { box-sizing: border-box; }
 
@@ -971,10 +971,51 @@ html, body {
   }
 }
 
+
+/* BUILD 68 — guaranteed visible audio test overlay */
+#sound-enable-overlay {
+  display: grid !important;
+  position: absolute;
+  inset: 0;
+  z-index: 999;
+  place-content: center;
+  gap: 12px;
+  background: rgba(0, 18, 40, .78);
+  text-align: center;
+}
+
+#sound-enable-overlay.enabled {
+  display: none !important;
+}
+
+#sound-enable-button {
+  min-width: 260px;
+  min-height: 64px;
+  padding: 14px 24px;
+  border: 4px solid #fff;
+  border-radius: 20px;
+  background: #1467c7;
+  color: #fff;
+  font: 900 24px Arial, sans-serif;
+  touch-action: manipulation;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#sound-enable-status {
+  color: #fff;
+  font: 700 15px Arial, sans-serif;
+}
+
 </style>
 </head>
 <body>
   <main id="game-shell" aria-label="Baby's First Steps game">
+
+    <div id="sound-enable-overlay" role="dialog" aria-label="Enable game sound">
+      <button id="sound-enable-button" type="button">🔊 ENABLE SOUND</button>
+      <div id="sound-enable-status">Tap this button once before playing</div>
+    </div>
+
 
     <div id="mobile-touch-controls" aria-label="Touch controls">
       <div class="mobile-pad mobile-pad-left">
@@ -1890,10 +1931,14 @@ html, body {
       }
     }
 
+    async testSound() {
+      return await this.playImmediate("Sound on.");
+    }
+
     async unlock() {
       if (this.unlocked) return true;
 
-      const ok = await this.playImmediate("Sound on.");
+      const ok = await this.testSound();
       if (ok) {
         this.unlocked = true;
         return true;
@@ -3805,28 +3850,25 @@ class Food {
   const soundStatus = document.getElementById("sound-enable-status");
 
   if (soundButton) {
-    const enableSound = async (event) => {
-      if (event) event.preventDefault();
+    soundButton.addEventListener("click", async (event) => {
+      event.preventDefault();
+      event.stopPropagation();
 
-      soundButton.disabled = true;
-      soundStatus.textContent = "Enabling sound...";
+      soundStatus.textContent = "Testing sound...";
 
       const ok = await audio.unlock();
 
       if (ok) {
-        soundStatus.textContent = "Sound enabled";
+        soundStatus.textContent = "Sound enabled ✓";
         setTimeout(() => {
-          if (soundOverlay) soundOverlay.classList.add("enabled");
-        }, 650);
+          soundOverlay.classList.add("enabled");
+        }, 900);
       } else {
-        soundButton.disabled = false;
-        soundStatus.textContent = "Tap again to enable sound";
+        soundStatus.textContent = "Sound did not start — tap again";
       }
-    };
-
-    soundButton.addEventListener("click", enableSound, { passive: false });
-    soundButton.addEventListener("touchend", enableSound, { passive: false });
+    }, { passive: false });
   }
+
   const player = new Player();
   const camera = new Camera(WIDTH, Stage1.width);
 
@@ -4126,7 +4168,7 @@ class Food {
     }
 
     debug.textContent =
-      `BUILD 67 | ${player.state.toUpperCase()}\n` +
+      `BUILD 68 | ${player.state.toUpperCase()}\n` +
       `4/6 Crawl | 7/9 Roll | 8 Raise | 2 Lower | 5 Stabilize\n` +
       `Food: continuous spawning until Learning = 100%\n` +
       `Active food: ${foodSystem.activeCount} | Obstacles: ${obstacleSystem.activeCount} | Mom: ${mother.state}\n` +
