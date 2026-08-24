@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Baby's First Steps - Build 61 Mobile</title>
+  <title>Baby's First Steps - Build 62 Mobile</title>
   <style>
 * { box-sizing: border-box; }
 
@@ -758,6 +758,148 @@ html, body {
 @supports (-webkit-touch-callout: none) {
   #mobile-touch-controls {
     display: block;
+  }
+}
+
+
+/* ============================================================
+   BUILD 62 — COMPACT MOBILE LANDSCAPE UI
+   ============================================================ */
+
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) {
+  /* Keep the game centered and use the available mobile viewport. */
+  #game-shell {
+    width: 100vw;
+    height: 100dvh;
+    max-width: none;
+    max-height: none;
+    aspect-ratio: auto;
+  }
+
+  #game-canvas {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+  }
+
+  /* Compact HUD cards so they stop covering the playfield. */
+  #player-card {
+    transform: scale(.44);
+    transform-origin: top left;
+    top: max(4px, env(safe-area-inset-top));
+    left: max(4px, env(safe-area-inset-left));
+  }
+
+  #food-card {
+    transform: scale(.46);
+    transform-origin: top right;
+    top: max(4px, env(safe-area-inset-top));
+    right: max(4px, env(safe-area-inset-right));
+  }
+
+  #controls-tip {
+    display: none !important;
+  }
+
+  #movement-controls {
+    display: none !important;
+  }
+
+  #debug-panel {
+    display: none !important;
+  }
+
+  /* Main left/right buttons. */
+  .mobile-pad {
+    bottom: max(8px, env(safe-area-inset-bottom));
+    grid-template-columns: 50px 62px;
+    grid-template-rows: 40px 62px;
+    gap: 5px;
+  }
+
+  .mobile-pad-left {
+    left: max(8px, env(safe-area-inset-left));
+  }
+
+  .mobile-pad-right {
+    right: max(8px, env(safe-area-inset-right));
+  }
+
+  .touch-main {
+    font-size: 28px;
+    border-radius: 14px;
+  }
+
+  .touch-small {
+    font-size: 16px;
+    border-radius: 12px;
+  }
+
+  .touch-btn {
+    border-width: 2px;
+    box-shadow:
+      0 0 0 2px rgba(27, 95, 179, .45),
+      0 3px 8px rgba(0,0,0,.22);
+  }
+
+  /* Keep 2 / 5 in the middle, but compact and lifted slightly. */
+  .mobile-center-actions {
+    bottom: max(10px, env(safe-area-inset-bottom));
+    gap: 8px;
+  }
+
+  .touch-mini {
+    width: 42px;
+    height: 42px;
+    font-size: 15px;
+    border-radius: 50%;
+  }
+
+  /* Prevent the controls from hiding the baby at the bottom corners. */
+  #mobile-touch-controls {
+    inset: 0;
+  }
+
+  /* Keep feedback away from the HUD. */
+  #food-feedback {
+    transform: scale(.72);
+    transform-origin: center center;
+  }
+}
+
+/* Extra-tight pass for short iPhone landscape viewports. */
+@media (hover: none) and (pointer: coarse) and (orientation: landscape) and (max-height: 460px) {
+  #player-card {
+    transform: scale(.39);
+  }
+
+  #food-card {
+    transform: scale(.40);
+  }
+
+  .mobile-pad {
+    grid-template-columns: 44px 56px;
+    grid-template-rows: 36px 56px;
+    gap: 4px;
+    bottom: max(5px, env(safe-area-inset-bottom));
+  }
+
+  .touch-main {
+    font-size: 24px;
+  }
+
+  .touch-small {
+    font-size: 14px;
+  }
+
+  .touch-mini {
+    width: 38px;
+    height: 38px;
+    font-size: 14px;
+  }
+
+  .mobile-center-actions {
+    bottom: max(6px, env(safe-area-inset-bottom));
   }
 }
 
@@ -3653,7 +3795,7 @@ class Food {
     }
 
     debug.textContent =
-      `BUILD 61 | ${player.state.toUpperCase()}\n` +
+      `BUILD 62 | ${player.state.toUpperCase()}\n` +
       `4/6 Crawl | 7/9 Roll | 8 Raise | 2 Lower | 5 Stabilize\n` +
       `Food: continuous spawning until Learning = 100%\n` +
       `Active food: ${foodSystem.activeCount} | Obstacles: ${obstacleSystem.activeCount} | Mom: ${mother.state}\n` +
