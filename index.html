@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Baby's First Steps - Build 63</title>
+  <title>Baby's First Steps - Build 64</title>
   <style>
 * { box-sizing: border-box; }
 
@@ -903,6 +903,22 @@ html, body {
   }
 }
 
+/* BUILD 64 — sequence keys remain visible on touch controls */
+.touch-main {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+.touch-main .key-number {
+  font-size: .72em;
+  line-height: 1;
+}
+.touch-main .key-arrow {
+  font-size: 1em;
+  line-height: 1;
+}
+
 </style>
 </head>
 <body>
@@ -911,13 +927,13 @@ html, body {
     <div id="mobile-touch-controls" aria-label="Touch controls">
       <div class="mobile-pad mobile-pad-left">
         <button class="touch-btn touch-small" data-key="Numpad7" aria-label="Roll left">7</button>
-        <button class="touch-btn touch-main" data-key="Numpad4" aria-label="Crawl left">←</button>
+        <button class="touch-btn touch-main" data-key="Numpad4" aria-label="Crawl left"><span class="key-number">4</span><span class="key-arrow">←</span></button>
         <button class="touch-btn touch-small" data-key="Numpad8" aria-label="Lift">8</button>
       </div>
 
       <div class="mobile-pad mobile-pad-right">
         <button class="touch-btn touch-small" data-key="Numpad9" aria-label="Roll right">9</button>
-        <button class="touch-btn touch-main" data-key="Numpad6" aria-label="Crawl right">→</button>
+        <button class="touch-btn touch-main" data-key="Numpad6" aria-label="Crawl right"><span class="key-number">6</span><span class="key-arrow">→</span></button>
         <button class="touch-btn touch-small" data-key="Numpad0" aria-label="Call Mom">0</button>
       </div>
 
@@ -1202,6 +1218,10 @@ html, body {
 
   addEventListener("keydown", event => {
     if (!supported.has(event.code)) return;
+
+    if (window.GameAudio && typeof window.GameAudio.unlock === "function") {
+      window.GameAudio.unlock();
+    }
     event.preventDefault();
 
     if (!held.has(event.code)) {
@@ -1306,6 +1326,12 @@ html, body {
 
       const down = (event) => {
         event.preventDefault();
+
+        // Unlock speech while we are still inside the user's touch gesture.
+        if (window.GameAudio && typeof window.GameAudio.unlock === "function") {
+          window.GameAudio.unlock();
+        }
+
         button.classList.add("active");
         window.MobileInputBridge.press(code);
       };
@@ -1773,6 +1799,22 @@ html, body {
       this.enabled = true;
       this.voiceEnabled = true;
       this.lastUtterance = null;
+      this.unlocked = false;
+    }
+
+    unlock() {
+      if (this.unlocked) return;
+      this.unlocked = true;
+
+      // iOS Safari/Chrome require speech to be initiated by a user gesture.
+      if ("speechSynthesis" in window) {
+        window.speechSynthesis.cancel();
+        const wake = new SpeechSynthesisUtterance("Sound on.");
+        wake.rate = 1.05;
+        wake.pitch = 1.05;
+        wake.volume = 0.75;
+        window.speechSynthesis.speak(wake);
+      }
     }
 
     speak(text) {
@@ -2783,12 +2825,21 @@ class Food {
       if (key === expected) {
         obstacle.sequenceIndex++;
 
+        const spokenNumber = key.replace("Numpad", "");
+        this.audio.speak(spokenNumber);
+
         const prompt = this.sequencePrompt(obstacle);
 
         this.ui.showBanner(
           `${prompt} — ${obstacle.sequenceIndex}/${obstacle.sequence.length}`,
           0.85
         );
+
+        if (obstacle.sequenceIndex < obstacle.sequence.length) {
+          const nextNumber =
+            obstacle.sequence[obstacle.sequenceIndex].replace("Numpad", "");
+          setTimeout(() => this.audio.speak(`Next, ${nextNumber}.`), 300);
+        }
 
         if (obstacle.sequenceIndex >= obstacle.sequence.length) {
           this.resolveSuccess(obstacle);
@@ -3636,6 +3687,7 @@ class Food {
   const stats = new Stats();
   const ui = new UI();
   const audio = new AudioManager();
+  window.GameAudio = audio;
   const player = new Player();
   const camera = new Camera(WIDTH, Stage1.width);
 
@@ -3935,7 +3987,7 @@ class Food {
     }
 
     debug.textContent =
-      `BUILD 63 | ${player.state.toUpperCase()}\n` +
+      `BUILD 64 | ${player.state.toUpperCase()}\n` +
       `4/6 Crawl | 7/9 Roll | 8 Raise | 2 Lower | 5 Stabilize\n` +
       `Food: continuous spawning until Learning = 100%\n` +
       `Active food: ${foodSystem.activeCount} | Obstacles: ${obstacleSystem.activeCount} | Mom: ${mother.state}\n` +
